@@ -12,11 +12,11 @@ def game():
             if 1 <= num <=100:
                 times += 1
                 if num < answer:
-                    print('Too small')
+                    print('Too small, please try again.')
                 elif num > answer:
-                    print('Too big!')
+                    print('Too big, please try again.')
                 else:
-                    print('Bingo!')
+                    print('Bingo! You have guessed {} times.'.format(times))
                     break
             else:
                 print('You have to enter a number between 1-100.')
@@ -24,49 +24,71 @@ def game():
             print('You have to enter a integer!')
     return times
 
-def score(_round, times):
-    user = input('Please enter your name to record your score: ')
+def score(user_history, user, total_round, total_avg, min_times):
+    user_history[user] = [user, str(total_round), str(total_avg), str(min_times)]
+    result = [' '.join(user_history[key]) + '\n' for key in user_history]
+
+    try:
+        with open('game_users.txt', 'w', encoding='utf-8') as f:
+            f.writelines(result)
+    except:
+        f = open('game_score.txt', 'w', encoding='utf-8')
+        f.writelines(result)
+        f.close()
+
+def play():
+    user = input('Please enter your Name: ')
     user_history = {}
 
     with open('game_users.txt', 'r', encoding='utf-8') as f:
         data = f.readlines()
         for i in range(len(data)):
             data[i] = data[i].replace('\n', '').split(' ')
-        #print(data)
+        # print(data)
         for j in data:
             user_history[j[0]] = j
 
         if user in user_history:
-            total_round = int(user_history[user][1]) + _round
-            total_times = int(user_history[user][1]) * int(user_history[user][2]) + times
-            total_avg = round(total_times/total_round)
-            min_times = min(int(user_history[user][3]), times)
-            user_history[user] = [user, str(total_round), str(total_avg), str(min_times)]
+            total_round = int(user_history[user][1])
+            total_avg = float(user_history[user][2])
+            min_times = int(user_history[user][3])
         else:
-            print('Hello, you are new to this game.')
-            total_round = _round
-            total_avg = round(times/_round)
+            total_round = 0
+            total_avg = 0.00
+            min_times = 0
+
+        print('{}, You have played {} rounds, the average time of guessing is {}, the minimum time of guessing is {}. Let\'s start the game!'.format(
+                user, total_round, total_avg, min_times))
+        _round = 1
+        _round_time = 0
+        times = game()
+        total_round += _round
+        _round_time += times
+        total_avg = round(((total_round-_round) * total_avg + _round_time) / total_round, 2)
+        if user in user_history:
+            min_times = min(min_times, times)
+        else:
             min_times = times
-            user_history[user] = [user, str(total_round), str(total_avg), str(min_times)]
+        score(user_history, user, total_round, total_avg, min_times)
 
-    with open('game_users.txt', 'w', encoding='utf-8') as f:
-        result = [' '.join(user_history[key]) + '\n' for key in user_history]
-        f.writelines(result)
-
-def play():
     while True:
-        _round = 0
-        start = input('Do you want to start a new game?("y" for yes and "e" for exit)')
-        print('Start:', start)
-        if start.lower() == 'y':
+        print('{}, You have played {} rounds, the average time of guessing is {}, the minimum time of guessing is {}. Let\'s start the game!'.format(
+                user, total_round, total_avg, min_times))
+        restart = input('Do you want to play again?("y" for yes and "e" for exit)')
+        if restart.lower() == 'y':
             _round += 1
+            total_round += 1
             times = game()
-            score(_round, times)
-        elif start.lower() == 'e':
-            print('Good bye~')
+            _round_time += times
+            total_avg = round(((total_round - _round) * total_avg + _round_time) / total_round, 2)
+            min_times = min(min_times, times)
+            score(user_history, user, total_round, total_avg, min_times)
+        elif restart.lower() == 'e':
+            print('Your score has been saved. Good bye~')
             break
         else:
-            print('Please enter the right contains.')
+            print('Please enter the right contents.')
 
 if __name__ == "__main__":
-    new_game = play()
+    # new_game = play()
+    play()
