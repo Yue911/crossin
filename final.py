@@ -62,6 +62,7 @@ def play():
         print('{}, You have played {} rounds, the average time of guessing is {}, the minimum time of guessing is {}. Let\'s start the game!'.format(
                 user, total_round, total_avg, min_times))
         _round = 1
+        total_round += _round
         times = game()
         total_time += times
         total_avg = round(total_time / total_round, 2)
